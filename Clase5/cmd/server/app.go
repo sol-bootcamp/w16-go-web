@@ -2,6 +2,7 @@ package server
 
 import (
 	"bootcamp-web/internal/handler"
+	"bootcamp-web/internal/middlewares"
 	"bootcamp-web/internal/repository"
 	"bootcamp-web/internal/service"
 	"net/http"
@@ -64,6 +65,7 @@ func (a *ServerChi) Run(apiToken string) (err error) {
 	// - middlewares
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// custom Middleware
 
 	// - endpoints
 
@@ -75,7 +77,6 @@ func (a *ServerChi) Run(apiToken string) (err error) {
 	})
 
 	r.Route("/products", func(r chi.Router) {
-
 		// Public endpoints
 		r.Group(func(r chi.Router) {
 			r.Get("/", ph.GetAllProducts())
@@ -87,8 +88,12 @@ func (a *ServerChi) Run(apiToken string) (err error) {
 		r.Group(func(r chi.Router) {
 			r.Post("/", ph.CreateProduct)
 			r.Put("/{id}", ph.UpdateProduct)
+
 			r.Patch("/{id}", ph.PatchProduct)
-			r.Delete("/{id}", ph.DeleteProduct)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.Auth)
+				r.Delete("/{id}", ph.DeleteProduct)
+			})
 		})
 
 	})
